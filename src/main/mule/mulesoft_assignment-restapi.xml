@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="de5d4573-c02b-4b56-b263-cba0f2976657" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="ee726002-ef4d-4966-ab65-f39904f1bf48" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<flow name="MuleRestAPIExpose" doc:id="c6e74295-dc28-4d70-9969-0ce398e0ac04" >
+		<http:listener doc:name="Rest Api Expose" doc:id="3e128d6e-7374-49b1-863d-90bb6c08c743" path="/products" allowedMethods="GET" outputMimeType="application/json" config-ref="HTTP_Listener_config"/>
+		<ee:transform doc:name="Transform Message" doc:id="333fa88d-7ca5-48f1-9ae2-e85941c0aa40" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+{
+	product_id:1,
+	product_name:"Health Insurance",
+	product_cost:2000
+},
+{
+	product_id:2,
+	product_name:"Life Insurance",
+	product_cost:3000
+},
+{
+	product_id:3,
+	product_name:"Motor Insurance",
+	product_cost:1000
+}
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="27f3086d-a23c-4b88-bb6b-a10ed626d895" />
+	</flow>
+	<flow name="RestAPIConsume" doc:id="8d776727-b8a6-4337-a2c4-17a345cfd549" >
+		
+		<http:listener doc:name="REST Api Consume" doc:id="fc48ac5f-fd81-427b-81fc-eff645f9bc6f" config-ref="HTTP_Listener_config" path="/getproducts"/>
+		<http:request method="GET" doc:name="Request" doc:id="7801c5b5-dec0-45f0-bfb7-57b7eb64326a" path="/products" config-ref="HTTP_Request_configuration"/>
+		<ee:transform doc:name="Transform Message" doc:id="b1f8988b-c9e8-4d7b-83ab-ff80c07e09b3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	state:"REST API Consume",
+	payload:payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
